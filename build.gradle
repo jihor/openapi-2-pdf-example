@@ -1,0 +1,49 @@
+import java.nio.file.Paths
+import io.github.swagger2markup.Swagger2MarkupConverter
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'io.github.swagger2markup:swagger2markup:1.3.3'
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+        classpath 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.15'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.asciidoctor.convert'
+
+repositories{
+    jcenter()
+}
+
+dependencies {
+    compile 'io.github.swagger2markup:swagger2markup:1.3.3'
+    compile 'org.asciidoctor:asciidoctorj:1.5.3'
+    compile 'org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.15'
+}
+
+processResources {
+    onlyIf {true} // always run, never mark as up-to-date
+    doLast {
+        def localSwaggerFile = Paths.get("src/docs/openapi/api.json")
+        def outputDirectory = Paths.get("src/docs/asciidoc")
+
+        Swagger2MarkupConverter.from(localSwaggerFile)
+                               .build()
+                               .toFolder(outputDirectory)
+        println "Done"
+    }
+}
+
+asciidoctor {
+    dependsOn processResources
+    sources {
+        include 'definitions.adoc'
+    }
+    outputDir = file('src/docs')
+    backends "pdf"
+}
